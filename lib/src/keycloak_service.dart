@@ -39,26 +39,26 @@ class KeycloakService {
 
   void _bindEvents() {
     _keycloak.onAuthSuccess = allowInterop(() {
-      _keycloakEvents.add(KeycloakEvent(type: KeycloakEventType.OnAuthSuccess));
+      _keycloakEvents.add(KeycloakEvent(type: KeycloakEventType.onAuthSuccess));
     });
     _keycloak.onAuthError = allowInterop((error) {
       _keycloakEvents
-          .add(KeycloakEvent(type: KeycloakEventType.OnAuthError, args: error));
+          .add(KeycloakEvent(type: KeycloakEventType.onAuthError, args: error));
     });
     _keycloak.onReady = allowInterop((authenticated) {
       _keycloakEvents.add(
-          KeycloakEvent(type: KeycloakEventType.OnReady, args: authenticated));
+          KeycloakEvent(type: KeycloakEventType.onReady, args: authenticated));
     });
     _keycloak.onAuthRefreshError = allowInterop(() {
       _keycloakEvents
-          .add(KeycloakEvent(type: KeycloakEventType.OnAuthRefreshError));
+          .add(KeycloakEvent(type: KeycloakEventType.onAuthRefreshError));
     });
     _keycloak.onAuthLogout = allowInterop(() {
-      _keycloakEvents.add(KeycloakEvent(type: KeycloakEventType.OnAuthLogout));
+      _keycloakEvents.add(KeycloakEvent(type: KeycloakEventType.onAuthLogout));
     });
     _keycloak.onTokenExpired = allowInterop(() {
       _keycloakEvents
-          .add(KeycloakEvent(type: KeycloakEventType.OnTokenExpired));
+          .add(KeycloakEvent(type: KeycloakEventType.onTokenExpired));
     });
   }
 
@@ -160,16 +160,44 @@ class KeycloakService {
 }
 
 enum KeycloakEventType {
-  OnAuthError,
-  OnAuthLogout,
-  OnAuthRefreshError,
-  OnAuthRefreshSuccess,
-  OnAuthSuccess,
-  OnReady,
-  OnTokenExpired
+  /// Called if there was an error during authentication.
+  onAuthError,
+
+  /// Called if the user is logged out (will only be called if the session status
+  /// iframe is enabled, or in Cordova mode).
+  onAuthLogout,
+
+  /// Called if there was an error while trying to refresh the token.
+  onAuthRefreshError,
+
+  /// Called when the token is refreshed
+  onAuthRefreshSuccess,
+
+  /// Called when a user is successfully authenticated.
+  onAuthSuccess,
+
+  /// Called when the adapter is initialized.
+  onReady,
+
+  ///  Called when the access token is expired. If a refresh token is available
+  ///  the token can be refreshed with updateToken, or in cases where it is not
+  ///  (that is, with implicit flow) you can redirect to login screen to obtain a new access token.
+  onTokenExpired
 }
 
 class KeycloakEvent {
+  /// Represents various type keycloak events that can be subscribed to
+  ///
+  /// [KeycloakEventType.onAuthError] is called if there was an error during authentication.
+  /// [KeycloakEventType.onAuthLogout] Called if the user is logged out (will only be called if the session status
+  /// iframe is enabled, or in Cordova mode).
+  /// [KeycloakEventType.onAuthRefreshError] Called if there was an error while trying to refresh the token.
+  /// [KeycloakEventType.onAuthRefreshSuccess] Called when the token is refreshed
+  /// [KeycloakEventType.onAuthSuccess] Called when a user is successfully authenticated.
+  /// [KeycloakEventType.onReady] Called when the adapter is initialized.
+  ///  [KeycloakEventType.onTokenExpired] Called when the access token is expired. If a refresh token is available
+  ///  the token can be refreshed with updateToken, or in cases where it is not
+  ///  (that is, with implicit flow) you can redirect to login screen to obtain a new access token.
   final KeycloakEventType type;
 
   final dynamic args;

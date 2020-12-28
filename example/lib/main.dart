@@ -19,7 +19,7 @@ class MyApp extends StatelessWidget {
           create: (_) {
             var keycloakService = KeycloakService();
             keycloakService.keycloakEventsStream.listen((event) {
-              if (event.type == KeycloakEventType.OnAuthSuccess) {
+              if (event.type == KeycloakEventType.onAuthSuccess) {
                 // User is authenticated
               }
             });
@@ -93,7 +93,7 @@ class _MyHomePageState extends State<MyHomePage> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((timeStamp) async {
       _keycloakService.keycloakEventsStream.listen((event) async {
-        if (event.type == KeycloakEventType.OnAuthSuccess) {
+        if (event.type == KeycloakEventType.onAuthSuccess) {
           _keycloakProfile = await _keycloakService.loadUserProfile();
         } else {
           _keycloakProfile = null;
