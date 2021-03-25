@@ -31,32 +31,8 @@ dependencies:
   keycloak_flutter: ^latest.version
 ```
 
-Next, your application needs to be properly configured to use the regular url scheme (`http://localhost.com`) instead of
-the default that comes with flutter (`http://localhost.com/#/`). Follow the instructions below to do this.
-
-1. Add `<base href="/">` inside the <head> section of your `web/index.html` file. This will be added automatically for
-   new projects created by flutter create. But for existing apps, the developer needs to add it manually.
-2. Add the below code as the first line in your main function
-
-```dart
-void main() {
-  configureUrlStrategy();
-  runApp(MyApp());
-}
-```
-
-The `configureUrlStrategy()` above uses a custom implementation of the PathUrlStrategy which cleans out your url to be
-more like a regular web application url. This is required for keycloak to work properly. More
-info [here]( https://github.com/flutter/flutter/issues/33245#issuecomment-705095853)
-
 Next, In your `web/index.html`, you need to add a `script` with a source that references your keycloak.js file. You can
 find `v10.0.2` in the example project. Your head tag should look as below.
-
-#### Choosing the right keycloak-js version
-
-The Keycloak client documentation recommends to use the same version of your Keycloak installation.
-
-> A best practice is to load the JavaScript adapter directly from Keycloak Server as it will automatically be updated when you upgrade the server. If you copy the adapter to your web application instead, make sure you upgrade the adapter only after you have upgraded the server.
 
 ```html
 <!DOCTYPE html>
@@ -79,6 +55,11 @@ The Keycloak client documentation recommends to use the same version of your Key
 </body>
 </html>
 ```
+#### Choosing the right keycloak-js version
+
+The Keycloak client documentation recommends to use the same version of your Keycloak installation.
+
+> A best practice is to load the JavaScript adapter directly from Keycloak Server as it will automatically be updated when you upgrade the server. If you copy the adapter to your web application instead, make sure you upgrade the adapter only after you have upgraded the server.
 
 You can now use keycloak in your app.
 

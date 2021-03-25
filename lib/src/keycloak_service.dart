@@ -3,33 +3,29 @@ import 'dart:async';
 import 'package:js/js.dart';
 import 'package:js/js_util.dart';
 import 'package:keycloak_flutter/src/keycloak.dart';
-import 'package:logger/logger.dart';
 
 /// @author Gibah Joseph
 /// email: gibahjoe@gmail.com
 /// Nov, 2020
 
 class KeycloakService {
-  Keycloak _keycloak;
-  KeycloakProfile _userProfile;
+  late Keycloak _keycloak;
+  KeycloakProfile? _userProfile;
   StreamController<KeycloakEvent> _keycloakEvents =
       StreamController.broadcast();
-  bool _loadUserProfileAtStartUp;
-  final log = Logger();
+  late bool _loadUserProfileAtStartUp;
   bool _silentRefresh = false;
 
-  KeycloakService();
+  KeycloakService(KeycloakConfig config) {
+    _keycloak = Keycloak(config);
+  }
 
   Future<bool> init(
-      {KeycloakConfig config,
-      KeycloakInitOptions initOptions,
+      {KeycloakInitOptions? initOptions,
       bool loadUserProfileAtStartUp = false}) async {
-    log.i('-->inited kc $_keycloak');
     _loadUserProfileAtStartUp = loadUserProfileAtStartUp;
-    _keycloak = Keycloak(config);
     _bindEvents();
     bool authed = false;
-
     authed = await promiseToFuture<bool>(_keycloak.init(initOptions));
     if (authed && this._loadUserProfileAtStartUp) {
       await this.loadUserProfile();
@@ -64,8 +60,7 @@ class KeycloakService {
 
   Stream<KeycloakEvent> get keycloakEventsStream => _keycloakEvents.stream;
 
-  Future<void> login([KeycloakLoginOptions options]) async {
-    log.i('-->loging kc $_keycloak');
+  Future<void> login([KeycloakLoginOptions? options]) async {
     await this._keycloak.login(options);
 
     if (this._loadUserProfileAtStartUp) {
@@ -78,14 +73,14 @@ class KeycloakService {
     return this._keycloak.token;
   }
 
-  Future<void> logout([KeycloakLogoutOptions options]) async {
+  Future<void> logout([KeycloakLogoutOptions? options]) async {
     await this._keycloak.logout(options);
     this._userProfile = null;
   }
 
-  FutureOr<KeycloakProfile> loadUserProfile([bool forceReload = false]) async {
+  FutureOr<KeycloakProfile?> loadUserProfile([bool forceReload = false]) async {
     if (this._userProfile != null && !forceReload) {
-      return this._userProfile;
+      return this._userProfile!;
     }
 
     if (!this._keycloak.authenticated) {
@@ -149,7 +144,7 @@ class KeycloakService {
   /// @returns
   ///  Boolean indicating if the token is expired.
   ///
-  bool isTokenExpired([num minValidity]) {
+  bool isTokenExpired([num? minValidity]) {
     return this._keycloak.isTokenExpired(minValidity);
   }
 
@@ -198,7 +193,7 @@ class KeycloakEvent {
   ///  [KeycloakEventType.onTokenExpired] Called when the access token is expired. If a refresh token is available
   ///  the token can be refreshed with updateToken, or in cases where it is not
   ///  (that is, with implicit flow) you can redirect to login screen to obtain a new access token.
-  final KeycloakEventType type;
+  final KeycloakEventType? type;
 
   final dynamic args;
 

@@ -333,7 +333,7 @@ abstract class KeycloakRoles {
 @JS()
 abstract class Keycloak {
   /// Creates a new Keycloak client instance.
-  external factory Keycloak(KeycloakConfig options);
+  external factory Keycloak(KeycloakConfig? options);
 
   /// Is true if the user is authenticated, false otherwise.
   external bool get authenticated;
@@ -462,13 +462,13 @@ abstract class Keycloak {
   external void onActionUpdate(String /*'success'|'cancelled'|'error'*/ status);
 
   /// Called to initialize the adapter.
-  external Future<bool> init(KeycloakInitOptions initOptions);
+  external Future<bool> init(KeycloakInitOptions? initOptions);
 
   /// Redirects to login form.
-  external Future login([KeycloakLoginOptions options]);
+  external Future login([KeycloakLoginOptions? options]);
 
   /// Redirects to logout.
-  external Future logout([KeycloakLogoutOptions options]);
+  external Future logout([KeycloakLogoutOptions? options]);
 
   /// Redirects to registration form.
   /// set to `'register'`.
@@ -492,7 +492,7 @@ abstract class Keycloak {
 
   /// Returns true if the token has less than `minValidity` seconds left before
   /// it expires.
-  external bool isTokenExpired([num minValidity]);
+  external bool isTokenExpired([num? minValidity]);
 
   /// If the token expires within `minValidity` seconds, the token is refreshed.
   /// If the session status iframe is enabled, the session status is also

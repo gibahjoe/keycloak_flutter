@@ -5,7 +5,6 @@ import 'package:keycloak_flutter/keycloak_flutter.dart';
 import 'package:provider/provider.dart';
 
 void main() {
-  configureUrlStrategy();
   runApp(MyApp());
 }
 
@@ -17,7 +16,10 @@ class MyApp extends StatelessWidget {
       providers: [
         Provider(
           create: (_) {
-            var keycloakService = KeycloakService();
+            var keycloakService = KeycloakService(KeycloakConfig(
+                url: 'http://localhost:8080/auth', // Keycloak auth base url
+                realm: 'securegate',
+                clientId: 'securegate-frontend'));
             keycloakService.keycloakEventsStream.listen((event) {
               if (event.type == KeycloakEventType.onAuthSuccess) {
                 // User is authenticated
@@ -25,10 +27,6 @@ class MyApp extends StatelessWidget {
             });
             return keycloakService
               ..init(
-                config: KeycloakConfig(
-                    url: 'http://localhost:8080/auth', // Keycloak auth base url
-                    realm: 'realm',
-                    clientId: 'realm-frontend'),
                 initOptions: KeycloakInitOptions(
                   onLoad: 'check-sso',
                   silentCheckSsoRedirectUri:
@@ -60,7 +58,7 @@ class MyApp extends StatelessWidget {
 }
 
 class MyHomePage extends StatefulWidget {
-  MyHomePage({Key key, this.title}) : super(key: key);
+  MyHomePage({Key? key, this.title}) : super(key: key);
 
   // This widget is the home page of your application. It is stateful, meaning
   // that it has a State object (defined below) that contains fields that affect
@@ -71,15 +69,15 @@ class MyHomePage extends StatefulWidget {
   // used by the build method of the State. Fields in a Widget subclass are
   // always marked "final".
 
-  final String title;
+  final String? title;
 
   @override
   _MyHomePageState createState() => _MyHomePageState();
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  KeycloakProfile _keycloakProfile;
-  KeycloakService _keycloakService;
+  KeycloakProfile? _keycloakProfile;
+  late KeycloakService _keycloakService;
 
   void _login() {
     _keycloakService.login(KeycloakLoginOptions(
@@ -91,7 +89,7 @@ class _MyHomePageState extends State<MyHomePage> {
   void initState() {
     // TODO: implement initState
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((timeStamp) async {
+    WidgetsBinding.instance?.addPostFrameCallback((timeStamp) async {
       _keycloakService.keycloakEventsStream.listen((event) async {
         if (event.type == KeycloakEventType.onAuthSuccess) {
           _keycloakProfile = await _keycloakService.loadUserProfile();
@@ -118,7 +116,7 @@ class _MyHomePageState extends State<MyHomePage> {
       appBar: AppBar(
         // Here we take the value from the MyHomePage object that was created by
         // the App.build method, and use it to set our appbar title.
-        title: Text(widget.title),
+        title: Text(widget.title!),
         actions: [
           IconButton(
               icon: Icon(Icons.logout),
@@ -156,7 +154,7 @@ class _MyHomePageState extends State<MyHomePage> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: _login,
-        tooltip: 'Increment',
+        tooltip: 'Login',
         child: Icon(Icons.login),
       ), // This trailing comma makes auto-formatting nicer for build methods.
     );
