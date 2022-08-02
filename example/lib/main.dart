@@ -12,9 +12,7 @@ class MyApp extends StatelessWidget {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    return MultiProvider(
-      providers: [
-        Provider(
+    return Provider(
           create: (_) {
             var keycloakService = KeycloakService(KeycloakConfig(
                 url: 'http://localhost:8080/auth', // Keycloak auth base url
@@ -34,8 +32,6 @@ class MyApp extends StatelessWidget {
                 ),
               );
           },
-        ),
-      ],
       child: MaterialApp(
         title: 'Keycloak Demo',
         debugShowCheckedModeBanner: false,
