@@ -11,14 +11,26 @@ This library helps you to use [keycloak-js](https://www.keycloak.org/docs/latest
 - A **Keycloak Service** which wraps the `keycloak-js` methods to be used in Flutter, giving extra
   functionalities to the original functions and adding new methods to make it easier to be consumed by
   Flutter applications.
-- ~~Generic **AuthGuard implementation**, so you can customize your own AuthGuard logic inheriting the authentication logic and the roles load.~~ (_coming soon_)
-- ~~A **HttpClient interceptor** that adds the authorization header to all HttpClient requests.~~ 
-  ~~It is also possible to disable this interceptor or exclude routes from having the authorization header.~~ (_coming soon_)
+- ~~Generic **AuthGuard implementation**, so you can customize your own AuthGuard logic inheriting the authentication
+  logic and the roles load.~~ (_coming soon_)
+- ~~A **HttpClient interceptor** that adds the authorization header to all HttpClient requests.~~
+  ~~It is also possible to disable this interceptor or exclude routes from having the authorization header.~~ (_coming
+  soon_)
 - ~~This documentation also assists you to configure the keycloak in your Flutter applications and with
   the client setup in the admin console of your keycloak installation.~~ (_coming soon_)
 
+## Compatibility
+
+The table below shows the compatibility of keycloak flutter with keycloak. Note that this table will be updated and is
+not set in stone
+
+| Keycloak_flutter version | Keycloak version |
+|--------------------------|------------------|
+| v0.0.3                   | v10 - v13        |
+| v0.0.19                  | v17 - v19        |
 
 ## Installation
+
 Firstly, you need to have keycloak configured. Duh!
 
 Include [keycloak_flutter](https://pub.dev/packages/keycloak_flutter) as a dependency in the
@@ -67,14 +79,33 @@ You can now use keycloak in your app.
 
 You need to ensure you do not create multiple instances of keycloak. The example below uses a provider to ensure this.
 
-Use the code provided below as an example and implement it's functionality in your application. In this process ensure that the configuration you are providing matches that of your client as configured in Keycloak.
+Use the code provided below as an example and implement it's functionality in your application. In this process ensure
+that the configuration you are providing matches that of your client as configured in Keycloak.
 
-- Read more about keycloak client adapter [here](https://www.keycloak.org/docs/latest/securing_apps/#_javascript_adapter)
+- Read more about keycloak client
+  adapter [here](https://www.keycloak.org/docs/latest/securing_apps/#_javascript_adapter)
 
 # Example
+
+## Please check and run the example code included in this repository.
+
+A sample keycloak client is also included in the example codebase
+
 ```dart
+late KeycloakService keycloakService;
+
 void main() {
-  configureUrlStrategy();
+  keycloakService = KeycloakService(KeycloakConfig(
+          url: 'http://localhost:8080', // Keycloak auth base url
+          realm: 'sample',
+          clientId: 'sample-flutter'));
+  keycloakService.init(
+    initOptions: KeycloakInitOptions(
+      onLoad: 'check-sso',
+      silentCheckSsoRedirectUri:
+      '${window.location.origin}/silent-check-sso.html',
+    ),
+  );
   runApp(MyApp());
 }
 
@@ -82,37 +113,112 @@ class MyApp extends StatelessWidget {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    return MultiProvider(
-      providers: [
-        Provider(
-          create: (_) {
-            var keycloakService = KeycloakService();
-            keycloakService.keycloakEventsStream.listen((event) {
-              if (event.type == KeycloakEventType.OnAuthSuccess) {
-                // User is authenticated
-              }
-            });
-            return keycloakService
-              ..init(
-                config: KeycloakConfig(
-                    url: 'http://localhost:8080/auth', // Keycloak auth base url
-                    realm: 'realm',
-                    clientId: 'realm-frontend'),
-                initOptions: KeycloakInitOptions(
-                  onLoad: 'check-sso',
-                  silentCheckSsoRedirectUri:
-                  '${window.location.origin}/silent-check-sso.html',
-                ),
-              );
-          },
+    return MaterialApp(
+      title: 'Keycloak Demo',
+      debugShowCheckedModeBanner: false,
+      theme: ThemeData(
+        primarySwatch: Colors.blue,
+      ),
+      home: MyHomePage(title: 'Flutter Keycloak demo'),
+    );
+  }
+}
+
+class MyHomePage extends StatefulWidget {
+  MyHomePage({Key? key, this.title}) : super(key: key);
+
+  final String? title;
+
+  @override
+  _MyHomePageState createState() => _MyHomePageState();
+}
+
+class _MyHomePageState extends State<MyHomePage> {
+  KeycloakProfile? _keycloakProfile;
+
+  void _login() {
+    keycloakService.login(KeycloakLoginOptions(
+      redirectUri: '${window.location.origin}',
+    ));
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((timeStamp) async {
+      keycloakService.keycloakEventsStream.listen((event) async {
+        print(event);
+        if (event.type == KeycloakEventType.onAuthSuccess) {
+          _keycloakProfile = await keycloakService.loadUserProfile();
+        } else {
+          _keycloakProfile = null;
+        }
+        setState(() {});
+      });
+      // if(keycloakService.authenticated){
+      //   _keycloakProfile = await keycloakService.loadUserProfile(false);
+      // }
+      setState(() {});
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    // This method is rerun every time setState is called, for instance as done
+    // by the _incrementCounter method above.
+    //
+    // The Flutter framework has been optimized to make rerunning build methods
+    // fast, so that you can just rebuild anything that needs updating rather
+    // than having to individually change instances of widgets.
+    return Scaffold(
+      appBar: AppBar(
+        // Here we take the value from the MyHomePage object that was created by
+        // the App.build method, and use it to set our appbar title.
+        title: Text(widget.title!),
+        actions: [
+          IconButton(
+                  icon: Icon(Icons.logout),
+                  onPressed: () async {
+                    await keycloakService.logout();
+                  }),
+        ],
+      ),
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: <Widget>[
+            Text(
+              'Welcome ${_keycloakProfile?.username ?? 'Guest'}',
+              style: Theme
+                      .of(context)
+                      .textTheme
+                      .headline4,
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                print('refreshing token');
+                await keycloakService.updateToken(1000).then((value) {
+                  print(value);
+                })
+                        .catchError((onError) {
+                  print(onError);
+                });
+              },
+              child: Text(
+                'Refresh token',
+                style: Theme
+                        .of(context)
+                        .textTheme
+                        .headline4,
+              ),
+            ),
+          ],
         ),
-      ],
-      child: MaterialApp(
-        title: 'Keycloak Demo',
-        theme: ThemeData(
-          primarySwatch: Colors.blue,
-        ),
-        home: MyHomePage(title: 'Flutter Keycloak demo'),
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: _login,
+        tooltip: 'Login',
+        child: Icon(Icons.login),
       ),
     );
   }
@@ -126,16 +232,20 @@ To ensure that Keycloak can communicate through the iframe you will have to serv
 Create a file called `silent-check-sso.html` in the `assets` directory of your application and paste in the contents as seen below.
 
 ```html
+
 <html>
-  <body>
-    <script>
-      parent.postMessage(location.href, location.origin);
-    </script>
-  </body>
+<body>
+<script>
+  parent.postMessage(location.href, location.origin);
+</script>
+</body>
 </html>
 ```
 
-If you want to know more about these options and various other capabilities of the Keycloak client is recommended to read the [JavaScript Adapter documentation](https://www.keycloak.org/docs/latest/securing_apps/#_javascript_adapter).
+## Please check the example code included in this repository
+
+If you want to know more about these options and various other capabilities of the Keycloak client is recommended to
+read the [JavaScript Adapter documentation](https://www.keycloak.org/docs/latest/securing_apps/#_javascript_adapter).
 
 ## Features and bugs
 

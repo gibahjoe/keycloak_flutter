@@ -2,9 +2,21 @@ import 'dart:html';
 
 import 'package:flutter/material.dart';
 import 'package:keycloak_flutter/keycloak_flutter.dart';
-import 'package:provider/provider.dart';
+
+late KeycloakService keycloakService;
 
 void main() {
+  keycloakService = KeycloakService(KeycloakConfig(
+      url: 'http://localhost:8080', // Keycloak auth base url
+      realm: 'sample',
+      clientId: 'sample-flutter'));
+  keycloakService.init(
+    initOptions: KeycloakInitOptions(
+      onLoad: 'check-sso',
+      silentCheckSsoRedirectUri:
+          '${window.location.origin}/silent-check-sso.html',
+    ),
+  );
   runApp(MyApp());
 }
 
@@ -12,47 +24,22 @@ class MyApp extends StatelessWidget {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    return MultiProvider(
-      providers: [
-        Provider(
-          create: (_) {
-            var keycloakService = KeycloakService(KeycloakConfig(
-                url: 'http://localhost:8080/auth', // Keycloak auth base url
-                realm: 'securegate',
-                clientId: 'securegate-frontend'));
-            keycloakService.keycloakEventsStream.listen((event) {
-              if (event.type == KeycloakEventType.onAuthSuccess) {
-                // User is authenticated
-              }
-            });
-            return keycloakService
-              ..init(
-                initOptions: KeycloakInitOptions(
-                  onLoad: 'check-sso',
-                  silentCheckSsoRedirectUri:
-                      '${window.location.origin}/silent-check-sso.html',
-                ),
-              );
-          },
-        ),
-      ],
-      child: MaterialApp(
-        title: 'Keycloak Demo',
-        debugShowCheckedModeBanner: false,
-        theme: ThemeData(
-          // This is the theme of your application.
-          //
-          // Try running your application with "flutter run". You'll see the
-          // application has a blue toolbar. Then, without quitting the app, try
-          // changing the primarySwatch below to Colors.green and then invoke
-          // "hot reload" (press "r" in the console where you ran "flutter run",
-          // or simply save your changes to "hot reload" in a Flutter IDE).
-          // Notice that the counter didn't reset back to zero; the application
-          // is not restarted.
-          primarySwatch: Colors.blue,
-        ),
-        home: MyHomePage(title: 'Flutter Keycloak demo'),
+    return MaterialApp(
+      title: 'Keycloak Demo',
+      debugShowCheckedModeBanner: false,
+      theme: ThemeData(
+        // This is the theme of your application.
+        //
+        // Try running your application with "flutter run". You'll see the
+        // application has a blue toolbar. Then, without quitting the app, try
+        // changing the primarySwatch below to Colors.green and then invoke
+        // "hot reload" (press "r" in the console where you ran "flutter run",
+        // or simply save your changes to "hot reload" in a Flutter IDE).
+        // Notice that the counter didn't reset back to zero; the application
+        // is not restarted.
+        primarySwatch: Colors.blue,
       ),
+      home: MyHomePage(title: 'Flutter Keycloak demo'),
     );
   }
 }
@@ -77,10 +64,9 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   KeycloakProfile? _keycloakProfile;
-  late KeycloakService _keycloakService;
 
   void _login() {
-    _keycloakService.login(KeycloakLoginOptions(
+    keycloakService.login(KeycloakLoginOptions(
       redirectUri: '${window.location.origin}',
     ));
   }
@@ -89,23 +75,25 @@ class _MyHomePageState extends State<MyHomePage> {
   void initState() {
     // TODO: implement initState
     super.initState();
-    WidgetsBinding.instance?.addPostFrameCallback((timeStamp) async {
-      _keycloakService.keycloakEventsStream.listen((event) async {
+    WidgetsBinding.instance.addPostFrameCallback((timeStamp) async {
+      keycloakService.keycloakEventsStream.listen((event) async {
+        print(event);
         if (event.type == KeycloakEventType.onAuthSuccess) {
-          _keycloakProfile = await _keycloakService.loadUserProfile();
+          _keycloakProfile = await keycloakService.loadUserProfile();
         } else {
           _keycloakProfile = null;
         }
         setState(() {});
       });
-      _keycloakProfile = await _keycloakService.loadUserProfile(false);
+      // if(keycloakService.authenticated){
+      //   _keycloakProfile = await keycloakService.loadUserProfile(false);
+      // }
       setState(() {});
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    _keycloakService = Provider.of(context);
     // This method is rerun every time setState is called, for instance as done
     // by the _incrementCounter method above.
     //
@@ -121,7 +109,7 @@ class _MyHomePageState extends State<MyHomePage> {
           IconButton(
               icon: Icon(Icons.logout),
               onPressed: () async {
-                await _keycloakService.logout();
+                await keycloakService.logout();
               }),
         ],
       ),
@@ -148,6 +136,20 @@ class _MyHomePageState extends State<MyHomePage> {
             Text(
               'Welcome ${_keycloakProfile?.username ?? 'Guest'}',
               style: Theme.of(context).textTheme.headline4,
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                print('refreshing token');
+                await keycloakService.updateToken(1000).then((value) {
+                  print(value);
+                }).catchError((onError) {
+                  print(onError);
+                });
+              },
+              child: Text(
+                'Refresh token',
+                style: Theme.of(context).textTheme.headline4,
+              ),
             ),
           ],
         ),

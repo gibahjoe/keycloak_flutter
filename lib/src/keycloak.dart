@@ -17,30 +17,48 @@ import "package:js/js.dart";
 /// NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
 /// WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 /// SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-/* WARNING: export assignment not yet supported. */
-
-// Module Keycloak
-/*type KeycloakAdapterName = 'cordova' | 'cordova-native' | 'default' | any;*/
-/*type KeycloakOnLoad = 'login-required' | 'check-sso';*/
-/*type KeycloakResponseMode = 'query' | 'fragment';*/
-/*type KeycloakResponseType = 'code' | 'id_token token' | 'code id_token token';*/
-/*type KeycloakFlow = 'standard' | 'implicit' | 'hybrid';*/
-/*type KeycloakPkceMethod = 'S256';*/
+/*export type KeycloakOnLoad = 'login-required'|'check-sso';*/
+/*export type KeycloakResponseMode = 'query'|'fragment';*/
+/*export type KeycloakResponseType = 'code'|'id_token token'|'code id_token token';*/
+/*export type KeycloakFlow = 'standard'|'implicit'|'hybrid';*/
+/*export type KeycloakPkceMethod = 'S256';*/
 @anonymous
 @JS()
 abstract class KeycloakConfig {
   /// URL to the Keycloak server, for example: http://keycloak-server/auth
   external String get url;
+
   external set url(String v);
 
   /// Name of the realm, for example: 'myrealm'
   external String get realm;
+
   external set realm(String v);
 
   /// Client identifier, example: 'myapp'
   external String get clientId;
+
   external set clientId(String v);
+
   external factory KeycloakConfig({String url, String realm, String clientId});
+}
+
+@anonymous
+@JS()
+abstract class Acr {
+  /// Array of values, which will be used inside ID Token `acr` claim sent inside the `claims` parameter to Keycloak server during login.
+  /// Values should correspond to the ACR levels defined in the ACR to Loa mapping for realm or client or to the numbers (levels) inside defined
+  /// Keycloak authentication flow. See section 5.5.1 of OIDC 1.0 specification for the details.
+  external List<String> get values;
+
+  external set values(List<String> v);
+
+  /// This parameter specifies if ACR claims is considered essential or not.
+  external bool get essential;
+
+  external set essential(bool v);
+
+  external factory Acr({List<String> values, bool essential});
 }
 
 @anonymous
@@ -50,22 +68,43 @@ abstract class KeycloakInitOptions {
   /// to verify that the authentication response matches the request.
   /// @default true
   external bool get useNonce;
+
   external set useNonce(bool v);
 
-  /// Allows to use different adapter:
-  /// - {string} default - using browser api for redirects
-  /// - {string} cordova - using cordova plugins
-  /// - {function} - allows to provide custom function as adapter.
-  external dynamic /*'cordova'|'cordova-native'|'default'|dynamic*/ get adapter;
+  /// Allow usage of different types of adapters or a custom adapter to make Keycloak work in different environments.
+  /// The following options are supported:
+  /// - `default` - Use default APIs that are available in browsers.
+  /// - `cordova` - Use a WebView in Cordova.
+  /// - `cordova-native` - Use Cordova native APIs, this is recommended over `cordova`.
+  /// It's also possible to pass in a custom adapter for the environment you are running Keycloak in. In order to do so extend the `KeycloakAdapter` interface and implement the methods that are defined there.
+  /// For example:
+  /// ```ts
+  /// import Keycloak, { KeycloakAdapter } from 'keycloak-js';
+  /// // Implement the 'KeycloakAdapter' interface so that all required methods are guaranteed to be present.
+  /// const MyCustomAdapter: KeycloakAdapter = {
+  /// login(options) {
+  /// // Write your own implementation here.
+  /// }
+  /// // The other methods go here...
+  /// };
+  /// const keycloak = new Keycloak();
+  /// keycloak.init({
+  /// adapter: MyCustomAdapter,
+  /// });
+  /// ```
+  external dynamic /*'default'|'cordova'|'cordova-native'|KeycloakAdapter*/ get adapter;
+
   external set adapter(
-      dynamic /*'cordova'|'cordova-native'|'default'|dynamic*/ v);
+      dynamic /*'default'|'cordova'|'cordova-native'|KeycloakAdapter*/ v);
 
   /// Specifies an action to do on load.
   external String /*'login-required'|'check-sso'*/ get onLoad;
+
   external set onLoad(String /*'login-required'|'check-sso'*/ v);
 
   /// Set an initial value for the token.
   external String get token;
+
   external set token(String v);
 
   /// Set an initial value for the refresh token.
@@ -103,32 +142,59 @@ abstract class KeycloakInitOptions {
   /// Specifies a default uri to redirect to after login or logout.
   /// This is currently supported for adapter 'cordova-native' and 'default'
   external String get redirectUri;
+
   external set redirectUri(String v);
 
   /// Specifies an uri to redirect to after silent check-sso.
   /// Silent check-sso will only happen, when this redirect uri is given and
-  /// the specified uri is available whithin the application.
+  /// the specified uri is available within the application.
   external String get silentCheckSsoRedirectUri;
+
   external set silentCheckSsoRedirectUri(String v);
+
+  /// Specifies whether the silent check-sso should fallback to "non-silent"
+  /// check-sso when 3rd party cookies are blocked by the browser. Defaults
+  /// to true.
+  external bool get silentCheckSsoFallback;
+
+  external set silentCheckSsoFallback(bool v);
 
   /// Set the OpenID Connect flow.
   /// @default standard
   external String /*'standard'|'implicit'|'hybrid'*/ get flow;
+
   external set flow(String /*'standard'|'implicit'|'hybrid'*/ v);
 
   /// Configures the Proof Key for Code Exchange (PKCE) method to use.
   /// The currently allowed method is 'S256'.
   /// If not configured, PKCE will not be used.
   external String /*'S256'*/ get pkceMethod;
+
   external set pkceMethod(String /*'S256'*/ v);
 
   /// Enables logging messages from Keycloak to the console.
   /// @default false
   external bool get enableLogging;
+
   external set enableLogging(bool v);
+
+  /// Set the default scope parameter to the login endpoint. Use a space-delimited list of scopes.
+  /// Note that the scope 'openid' will be always be added to the list of scopes by the adapter.
+  /// Note that the default scope specified here is overwritten if the `login()` options specify scope explicitly.
+  external String get scope;
+
+  external set scope(String v);
+
+  /// Configures how long will Keycloak adapter wait for receiving messages from server in ms. This is used,
+  /// for example, when waiting for response of 3rd party cookies check.
+  /// @default 10000
+  external num get messageReceiveTimeout;
+
+  external set messageReceiveTimeout(num v);
+
   external factory KeycloakInitOptions(
       {bool useNonce,
-      dynamic /*'cordova'|'cordova-native'|'default'|dynamic*/ adapter,
+      dynamic /*'default'|'cordova'|'cordova-native'|KeycloakAdapter*/ adapter,
       String /*'login-required'|'check-sso'*/ onLoad,
       String token,
       String refreshToken,
@@ -139,20 +205,26 @@ abstract class KeycloakInitOptions {
       String /*'query'|'fragment'*/ responseMode,
       String redirectUri,
       String silentCheckSsoRedirectUri,
+      bool silentCheckSsoFallback,
       String /*'standard'|'implicit'|'hybrid'*/ flow,
       String /*'S256'*/ pkceMethod,
-      bool enableLogging});
+      bool enableLogging,
+      String scope,
+      num messageReceiveTimeout});
 }
 
 @anonymous
 @JS()
 abstract class KeycloakLoginOptions {
-  /// @private Undocumented.
+  /// Specifies the scope parameter for the login url
+  /// The scope 'openid' will be added to the scope if it is missing or undefined.
   external String get scope;
+
   external set scope(String v);
 
   /// Specifies the uri to redirect to after login.
   external String get redirectUri;
+
   external set redirectUri(String v);
 
   /// By default the login screen is displayed if the user is not logged into
@@ -173,19 +245,28 @@ abstract class KeycloakLoginOptions {
   /// longer time than `'maxAge'`, the SSO is ignored and he will need to
   /// authenticate again.
   external num get maxAge;
+
   external set maxAge(num v);
 
   /// Used to pre-fill the username/email field on the login form.
   external String get loginHint;
+
   external set loginHint(String v);
+
+  /// Sets the `acr` claim of the ID token sent inside the `claims` parameter. See section 5.5.1 of the OIDC 1.0 specification.
+  external Acr get acr;
+
+  external set acr(Acr v);
 
   /// Used to tell Keycloak which IDP the user wants to authenticate with.
   external String get idpHint;
+
   external set idpHint(String v);
 
   /// Sets the 'ui_locales' query param in compliance with section 3.1.2.1
   /// of the OIDC 1.0 specification.
   external String get locale;
+
   external set locale(String v);
 
   /// Specifies arguments that are passed to the Cordova in-app-browser (if applicable).
@@ -201,6 +282,7 @@ abstract class KeycloakLoginOptions {
       String action,
       num maxAge,
       String loginHint,
+      Acr acr,
       String idpHint,
       String locale,
       dynamic /*JSMap of <String,String>*/ cordovaOptions});
@@ -211,27 +293,54 @@ abstract class KeycloakLoginOptions {
 abstract class KeycloakLogoutOptions {
   /// Specifies the uri to redirect to after logout.
   external String get redirectUri;
+
   external set redirectUri(String v);
+
   external factory KeycloakLogoutOptions({String redirectUri});
+}
+
+@anonymous
+@JS()
+abstract class KeycloakRegisterOptions extends KeycloakLoginOptions {
+  external factory KeycloakRegisterOptions(
+      {String scope,
+      String redirectUri,
+      String /*'none'|'login'*/ prompt,
+      String action,
+      num maxAge,
+      String loginHint,
+      Acr acr,
+      String idpHint,
+      String locale,
+      Map<String, String> cordovaOptions});
+}
+
+@anonymous
+@JS()
+abstract class KeycloakAccountOptions {
+  /// Specifies the uri to redirect to when redirecting back to the application.
+  external String get redirectUri;
+
+  external set redirectUri(String v);
+
+  external factory KeycloakAccountOptions({String redirectUri});
 }
 
 typedef void KeycloakPromiseCallback<T>(T result);
 
-// @JS("Keycloak.KeycloakPromise")
-// class KeycloakPromise<TSuccess, TError> extends Future<TSuccess> {
-//   // @Ignore
-//   KeycloakPromise.fakeConstructor$() : super.fakeConstructor$();
-//
-//   /// Function to call if the promised action succeeds.
-//   /// Use `.then()` instead.
-//   external KeycloakPromise<TSuccess, TError> success(
-//       KeycloakPromiseCallback<TSuccess> callback);
-//
-//   /// Function to call if the promised action throws an error.
-//   /// Use `.catch()` instead.
-//   external KeycloakPromise<TSuccess, TError> error(
-//       KeycloakPromiseCallback<TError> callback);
-// }
+@anonymous
+@JS()
+abstract class KeycloakPromise<TSuccess, TError> implements Future<TSuccess> {
+  /// Function to call if the promised action succeeds.
+  /// Use `.then()` instead.
+  external KeycloakPromise<TSuccess, TError> success(
+      KeycloakPromiseCallback<TSuccess> callback);
+
+  /// Function to call if the promised action throws an error.
+  /// Use `.catch()` instead.
+  external KeycloakPromise<TSuccess, TError> error(
+      KeycloakPromiseCallback<TError> callback);
+}
 
 @anonymous
 @JS()
@@ -246,10 +355,15 @@ abstract class KeycloakError {
 @anonymous
 @JS()
 abstract class KeycloakAdapter {
-  external Future login([KeycloakLoginOptions options]);
-  external Future logout([KeycloakLogoutOptions options]);
-  external Future register([KeycloakLoginOptions options]);
-  external Future accountManagement();
+  external KeycloakPromise<void, void> login([KeycloakLoginOptions options]);
+
+  external KeycloakPromise<void, void> logout([KeycloakLogoutOptions options]);
+
+  external KeycloakPromise<void, void> register(
+      [KeycloakRegisterOptions options]);
+
+  external KeycloakPromise<void, void> accountManagement();
+
   external String redirectUri(
       dynamic /*{ redirectUri: string; }*/ options, bool encodeHash);
 }
@@ -290,28 +404,58 @@ abstract class KeycloakProfile {
 @anonymous
 @JS()
 abstract class KeycloakTokenParsed {
-  external num get exp;
-  external set exp(num v);
-  external num get iat;
-  external set iat(num v);
-  external String get nonce;
-  external set nonce(String v);
+  external String get iss;
+
+  external set iss(String v);
+
   external String get sub;
+
   external set sub(String v);
+
+  external String get aud;
+
+  external set aud(String v);
+
+  external num get exp;
+
+  external set exp(num v);
+
+  external num get iat;
+
+  external set iat(num v);
+
+  external num get auth_time;
+
+  external set auth_time(num v);
+
+  external String get nonce;
+
+  external set nonce(String v);
+
+  external String get acr;
+
+  external set acr(String v);
+
+  external String get amr;
+
+  external set amr(String v);
+
+  external String get azp;
+
+  external set azp(String v);
+
   external String get session_state;
+
   external set session_state(String v);
+
   external KeycloakRoles get realm_access;
+
   external set realm_access(KeycloakRoles v);
+
   external KeycloakResourceAccess get resource_access;
+
   external set resource_access(KeycloakResourceAccess v);
-  external factory KeycloakTokenParsed(
-      {num exp,
-      num iat,
-      String nonce,
-      String sub,
-      String session_state,
-      KeycloakRoles realm_access,
-      KeycloakResourceAccess resource_access});
+/* Index signature is not yet supported by JavaScript interop. */
 }
 
 @anonymous
@@ -324,19 +468,32 @@ abstract class KeycloakResourceAccess {
 @JS()
 abstract class KeycloakRoles {
   external List<String> get roles;
+
   external set roles(List<String> v);
+
   external factory KeycloakRoles({List<String> roles});
 }
+
+/// Instead of importing 'KeycloakInstance' you can import 'Keycloak' directly as a type.
+/*export type KeycloakInstance = Keycloak;*/
+
+/// Construct a Keycloak instance using the `new` keyword instead.
+// @JS()
+// external Keycloak Keycloak([dynamic /*KeycloakConfig|String*/ config]);
 
 /// A client for the Keycloak authentication server.
 /// @see [https://keycloak.gitbooks.io/securing-client-applications-guide/content/topics/oidc/javascript-adapter.html|Keycloak JS adapter documentation]
 @JS()
 abstract class Keycloak {
+  // @Ignore
+  // Keycloak.fakeConstructor$();
+
   /// Creates a new Keycloak client instance.
   external factory Keycloak(KeycloakConfig? options);
 
   /// Is true if the user is authenticated, false otherwise.
   external bool get authenticated;
+
   external set authenticated(bool v);
 
   /// The user id.
@@ -434,13 +591,13 @@ abstract class Keycloak {
   external set userInfo(dynamic /*{}*/ v);
 
   /// Called when the adapter is initialized.
-  external set onReady(Function(bool) onReady);
+  external set onReady(Function(bool authenticated) onReady);
 
   /// Called when a user is successfully authenticated.
   external set onAuthSuccess(Function onAuthSuccess);
 
   /// Called if there was an error during authentication.
-  external set onAuthError(Function(KeycloakError) onAuthError);
+  external set onAuthError(Function(KeycloakError errorData) onAuthError);
 
   /// Called when the token is refreshed.
   external set onAuthRefreshSuccess(Function() onAuthRefreshSuccess);
@@ -462,20 +619,21 @@ abstract class Keycloak {
   external void onActionUpdate(String /*'success'|'cancelled'|'error'*/ status);
 
   /// Called to initialize the adapter.
-  external Future<bool> init(KeycloakInitOptions? initOptions);
+  external KeycloakPromise<bool, KeycloakError> init(
+      KeycloakInitOptions? initOptions);
 
   /// Redirects to login form.
-  external Future login([KeycloakLoginOptions? options]);
+  external KeycloakPromise<void, void> login([KeycloakLoginOptions? options]);
 
   /// Redirects to logout.
-  external Future logout([KeycloakLogoutOptions? options]);
+  external KeycloakPromise<void, void> logout([KeycloakLogoutOptions? options]);
 
   /// Redirects to registration form.
-  /// set to `'register'`.
-  external Future register([dynamic options]);
+  external KeycloakPromise<void, void> register(
+      [KeycloakRegisterOptions options]);
 
   /// Redirects to the Account Management Console.
-  external Future accountManagement();
+  external KeycloakPromise<void, void> accountManagement();
 
   /// Returns the URL to login form.
   external String createLoginUrl([KeycloakLoginOptions options]);
@@ -484,11 +642,10 @@ abstract class Keycloak {
   external String createLogoutUrl([KeycloakLogoutOptions options]);
 
   /// Returns the URL to registration page.
-  /// `action` is set to `'register'`.
-  external String createRegisterUrl([KeycloakLoginOptions options]);
+  external String createRegisterUrl([KeycloakRegisterOptions options]);
 
   /// Returns the URL to the Account Management Console.
-  external String createAccountUrl();
+  external String createAccountUrl([KeycloakAccountOptions options]);
 
   /// Returns true if the token has less than `minValidity` seconds left before
   /// it expires.
@@ -500,16 +657,16 @@ abstract class Keycloak {
   /// still valid, or if the token is no longer valid.
   /// @example
   /// ```js
-  /// keycloak.updateToken(5).success(function(refreshed) {
+  /// keycloak.updateToken(5).then(function(refreshed) {
   /// if (refreshed) {
   /// alert('Token was successfully refreshed');
   /// } else {
   /// alert('Token is still valid');
   /// }
-  /// }).error(function() {
+  /// }).catch(function() {
   /// alert('Failed to refresh the token, or the session has expired');
   /// });
-  external Future<bool> updateToken(num minValidity);
+  external KeycloakPromise<bool, bool> updateToken(num minValidity);
 
   /// Clears authentication state, including tokens. This can be useful if
   /// the application has detected the session was expired, for example if
@@ -524,10 +681,12 @@ abstract class Keycloak {
   external bool hasResourceRole(String role, [String resource]);
 
   /// Loads the user's profile.
-  external Future<KeycloakProfile> loadUserProfile();
+  external KeycloakPromise<KeycloakProfile, void> loadUserProfile();
 
   /// @private Undocumented.
-  external Future<dynamic /*{}*/ > loadUserInfo();
+  external KeycloakPromise<dynamic /*{}*/, void> loadUserInfo();
 }
 
-// End module Keycloak
+/* WARNING: export assignment not yet supported. */
+
+/// The 'Keycloak' namespace is deprecated, use named imports instead.

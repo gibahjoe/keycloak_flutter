@@ -68,6 +68,10 @@ class KeycloakService {
     }
   }
 
+  get authenticated {
+    return _keycloak.authenticated;
+  }
+
   Future<String> getToken([bool forceLogin = false]) async {
     await this.updateToken(10);
     return this._keycloak.token;

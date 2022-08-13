@@ -1,0 +1,29 @@
+{
+  "name": "keycloak_flutter",
+  "version": "1.0.0",
+  "description": "[![pub package](https://img.shields.io/pub/v/keycloak_flutter.svg)](https://pub.dev/packages/keycloak_flutter)",
+  "main": "index.js",
+  "directories": {
+    "example": "example",
+    "lib": "lib",
+    "test": "test"
+  },
+  "dependencies": {
+    "keycloak-angular": "^12.0.0",
+    "keycloak-js": "19.0.1"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/gibahjoe/keycloak_flutter.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/gibahjoe/keycloak_flutter/issues"
+  },
+  "homepage": "https://github.com/gibahjoe/keycloak_flutter#readme"
+}
