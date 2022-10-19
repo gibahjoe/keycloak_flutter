@@ -82,7 +82,7 @@ class KeycloakService {
     this._userProfile = null;
   }
 
-  Future<KeycloakProfile?> loadUserProfile([bool forceReload = false]) async {
+  FutureOr<KeycloakProfile?> loadUserProfile([bool forceReload = false]) async {
     if (this._userProfile != null && !forceReload) {
       return this._userProfile!;
     }
