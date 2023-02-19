@@ -13,8 +13,8 @@ void main() {
   keycloakService.init(
     initOptions: KeycloakInitOptions(
       onLoad: 'check-sso',
-      silentCheckSsoRedirectUri:
-          '${window.location.origin}/silent-check-sso.html',
+      // silentCheckSsoRedirectUri:
+      //     '${window.location.origin}/silent-check-sso.html',
     ),
   );
   runApp(MyApp());
