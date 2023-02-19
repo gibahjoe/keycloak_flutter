@@ -61,19 +61,19 @@ body:
   - type: input
     attributes:
       label: Keycloak web version
-      placeholder: 10.7.6
+      placeholder: "10.7.6"
     validations:
       required: true
   - type: input
     attributes:
       label: Keycloak flutter version
-      placeholder: 10.7.6
+      placeholder: "10.7.6"
     validations:
       required: true
   - type: input
     attributes:
       label: Flutter version
-      placeholder: 3.3
+      placeholder: "3.3"
     validations:
       required: true
   - type: input
