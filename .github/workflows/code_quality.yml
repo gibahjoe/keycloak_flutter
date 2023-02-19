@@ -51,15 +51,15 @@ jobs:
       fail-fast: false
 
     steps:
-    - uses: actions/checkout@v3
-    - uses: subosito/flutter-action@v2
-      with:
-        cache: true
-        channel: 'stable'
-    - working-directory: example
-    - run: flutter pub get
-#    - run: flutter test
-    - run: flutter build web
+      - uses: actions/checkout@v3
+      - uses: subosito/flutter-action@v2
+        with:
+          cache: true
+          channel: 'stable'
+      - working-directory: example
+      - run: flutter pub get
+  #    - run: flutter test
+      - run: flutter build web
 
   pr_context:
     name: Save PR context as artifact
