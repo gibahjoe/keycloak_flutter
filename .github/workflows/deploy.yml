@@ -19,8 +19,8 @@ jobs:
         uses: dawidd6/action-download-artifact@v2.24.2
         with:
           run_id: ${{ github.event.workflow_run.id }}
-          name: frontend
-          path: dist
+          name: example
+          path: build/web
 
       - name: Publish to Cloudflare Pages 📃
         uses: cloudflare/pages-action@v1.3.0
