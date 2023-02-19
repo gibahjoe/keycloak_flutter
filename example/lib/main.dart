@@ -12,7 +12,7 @@ void main() {
       clientId: 'sample-flutter'));
   keycloakService.init(
     initOptions: KeycloakInitOptions(
-      onLoad: 'check-sso',
+      onLoad: 'login-required',
       silentCheckSsoRedirectUri:
           '${window.location.origin}/silent-check-sso.html',
     ),
