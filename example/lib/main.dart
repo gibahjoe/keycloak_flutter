@@ -5,12 +5,12 @@ import 'package:keycloak_flutter/keycloak_flutter.dart';
 
 late KeycloakService keycloakService;
 
-void main() {
+void main() async {
   keycloakService = KeycloakService(KeycloakConfig(
       url: 'https://kc.devappliance.com', // Keycloak auth base url
       realm: 'keycloak_flutter',
       clientId: 'sample-flutter'));
-  keycloakService.init(
+  await keycloakService.init(
     initOptions: KeycloakInitOptions(
       onLoad: 'check-sso',
       silentCheckSsoRedirectUri:
