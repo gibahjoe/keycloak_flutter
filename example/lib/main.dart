@@ -7,14 +7,14 @@ late KeycloakService keycloakService;
 
 void main() {
   keycloakService = KeycloakService(KeycloakConfig(
-      url: 'http://localhost:8080', // Keycloak auth base url
-      realm: 'sample',
+      url: 'https://kc.devappliance.com', // Keycloak auth base url
+      realm: 'keycloak_flutter',
       clientId: 'sample-flutter'));
   keycloakService.init(
     initOptions: KeycloakInitOptions(
       onLoad: 'check-sso',
-      // silentCheckSsoRedirectUri:
-      //     '${window.location.origin}/silent-check-sso.html',
+      silentCheckSsoRedirectUri:
+          '${window.location.origin}/silent-check-sso.html',
     ),
   );
   runApp(MyApp());
