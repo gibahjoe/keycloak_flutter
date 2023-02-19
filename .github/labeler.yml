@@ -1,0 +1,11 @@
+github_actions:
+  - '.github/workflows/*'
+
+service:
+  - 'lib/src/keycloak_service.dart'
+plugin:
+  - 'lib/keycloak_flutter.dart'
+interop:
+  - 'lib/src/keycloak.dart'
+dependencies:
+  - 'pubspec.yaml'
