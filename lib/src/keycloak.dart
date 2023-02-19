@@ -330,7 +330,7 @@ typedef void KeycloakPromiseCallback<T>(T result);
 
 @anonymous
 @JS()
-abstract class KeycloakPromise<TSuccess, TError> implements Future<TSuccess> {
+abstract class KeycloakPromise<TSuccess, TError> {
   /// Function to call if the promised action succeeds.
   /// Use `.then()` instead.
   external KeycloakPromise<TSuccess, TError> success(
