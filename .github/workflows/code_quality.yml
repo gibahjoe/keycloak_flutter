@@ -69,7 +69,7 @@ jobs:
         with:
           name: example
           path: |
-            build/web
+            example/build/web
 
   pr_context:
     name: Save PR context as artifact

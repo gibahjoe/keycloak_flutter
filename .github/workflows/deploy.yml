@@ -20,7 +20,7 @@ jobs:
         with:
           run_id: ${{ github.event.workflow_run.id }}
           name: example
-          path: build/web
+          path: example/build/web
 
       - name: Publish to Cloudflare Pages 📃
         uses: cloudflare/pages-action@v1.3.0
