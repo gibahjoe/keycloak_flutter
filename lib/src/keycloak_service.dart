@@ -61,7 +61,7 @@ class KeycloakService {
   Stream<KeycloakEvent> get keycloakEventsStream => _keycloakEvents.stream;
 
   Future<void> login([KeycloakLoginOptions? options]) async {
-    await this._keycloak.login(options);
+    this._keycloak.login(options);
 
     if (this._loadUserProfileAtStartUp) {
       await this.loadUserProfile();
@@ -78,7 +78,7 @@ class KeycloakService {
   }
 
   Future<void> logout([KeycloakLogoutOptions? options]) async {
-    await this._keycloak.logout(options);
+    this._keycloak.logout(options);
     this._userProfile = null;
   }
 
@@ -133,9 +133,6 @@ class KeycloakService {
       return true;
     }
 
-    if (this._keycloak == null) {
-      throw new Exception('Keycloak Dart library is not initialized.');
-    }
     return promiseToFuture<bool>(this._keycloak.updateToken(minValidity));
   }
 
@@ -152,7 +149,6 @@ class KeycloakService {
     return this._keycloak.isTokenExpired(minValidity);
   }
 
-  @override
   void dispose() {
     _keycloakEvents.close();
   }

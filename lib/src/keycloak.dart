@@ -432,9 +432,11 @@ abstract class KeycloakTokenParsed {
 
   external set iat(num v);
 
-  external num get auth_time;
+  @JS("auth_time")
+  external num get authTime;
 
-  external set auth_time(num v);
+  @JS("auth_time")
+  external set authTime(num v);
 
   external String get nonce;
 
@@ -452,17 +454,23 @@ abstract class KeycloakTokenParsed {
 
   external set azp(String v);
 
-  external String get session_state;
+  @JS("session_state")
+  external String get sessionState;
 
-  external set session_state(String v);
+  @JS("session_state")
+  external set sessionState(String v);
 
-  external KeycloakRoles get realm_access;
+  @JS("realm_access")
+  external KeycloakRoles get realmAccess;
 
-  external set realm_access(KeycloakRoles v);
+  @JS("realm_access")
+  external set realmAccess(KeycloakRoles v);
 
-  external KeycloakResourceAccess get resource_access;
+  @JS("resource_access")
+  external KeycloakResourceAccess get resourceAccess;
 
-  external set resource_access(KeycloakResourceAccess v);
+  @JS("resource_access")
+  external set resourceAccess(KeycloakResourceAccess v);
 /* Index signature is not yet supported by JavaScript interop. */
 }
 
