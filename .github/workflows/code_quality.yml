@@ -11,37 +11,6 @@ on:
   workflow_dispatch:
 
 jobs:
-#  dependency-review:
-#    name: Vulnerable dependencies 🔎
-#    runs-on: ubuntu-latest
-#    steps:
-#      - name: Checkout Repository
-#        uses: actions/checkout@v3.2.0
-#
-#      - name: Scan
-#        uses: actions/dependency-review-action@v3.0.2
-
-#  lint:
-#    name: Lint 🔬
-#    runs-on: ubuntu-latest
-#
-#    steps:
-#      - name: Checkout ⬇️
-#        uses: actions/checkout@v3.2.0
-#
-#      - name: Setup node environment ⚙️
-#        uses: actions/setup-node@v3.5.1
-#        with:
-#          node-version: 16
-#          cache: 'npm'
-#          check-latest: true
-#
-#      - name: Install dependencies 📦
-#        run: npm ci --no-audit
-#
-#      - name: Run linter ✏️
-#        run: 'npm run lint:js && npm run lint:style'
-
   build:
     name: Build frontend 🛠️
     runs-on: ubuntu-latest

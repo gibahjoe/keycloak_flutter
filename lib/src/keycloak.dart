@@ -92,7 +92,8 @@ abstract class KeycloakInitOptions {
   /// adapter: MyCustomAdapter,
   /// });
   /// ```
-  external dynamic /*'default'|'cordova'|'cordova-native'|KeycloakAdapter*/ get adapter;
+  external dynamic /*'default'|'cordova'|'cordova-native'|KeycloakAdapter*/
+      get adapter;
 
   external set adapter(
       dynamic /*'default'|'cordova'|'cordova-native'|KeycloakAdapter*/ v);
@@ -346,10 +347,17 @@ abstract class KeycloakPromise<TSuccess, TError> {
 @JS()
 abstract class KeycloakError {
   external String get error;
+
   external set error(String v);
-  external String get error_description;
-  external set error_description(String v);
-  external factory KeycloakError({String error, String error_description});
+
+  @JS('error_description')
+  external String get errorDescription;
+
+  @JS('error_description')
+  external set errorDescription(String v);
+
+  external factory KeycloakError(
+      {String error, @JS('error_description') String errorDescription});
 }
 
 @anonymous
@@ -498,25 +506,31 @@ abstract class Keycloak {
 
   /// The user id.
   external String get subject;
+
   external set subject(String v);
 
   /// Response mode passed in init (default value is `'fragment'`).
   external String /*'query'|'fragment'*/ get responseMode;
+
   external set responseMode(String /*'query'|'fragment'*/ v);
 
   /// Response type sent to Keycloak with login requests. This is determined
   /// based on the flow value used during initialization, but can be overridden
   /// by setting this value.
-  external String /*'code'|'id_token token'|'code id_token token'*/ get responseType;
+  external String /*'code'|'id_token token'|'code id_token token'*/
+      get responseType;
+
   external set responseType(
       String /*'code'|'id_token token'|'code id_token token'*/ v);
 
   /// Flow passed in init.
   external String /*'standard'|'implicit'|'hybrid'*/ get flow;
+
   external set flow(String /*'standard'|'implicit'|'hybrid'*/ v);
 
   /// The realm roles associated with the token.
   external KeycloakRoles get realmAccess;
+
   external set realmAccess(KeycloakRoles v);
 
   /// The resource roles associated with the token.
@@ -686,7 +700,3 @@ abstract class Keycloak {
   /// @private Undocumented.
   external KeycloakPromise<dynamic /*{}*/, void> loadUserInfo();
 }
-
-/* WARNING: export assignment not yet supported. */
-
-/// The 'Keycloak' namespace is deprecated, use named imports instead.

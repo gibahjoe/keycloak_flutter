@@ -1,6 +1,7 @@
 # Keycloak Flutter
 
 [![pub package](https://img.shields.io/pub/v/keycloak_flutter.svg)](https://pub.dev/packages/keycloak_flutter)
+[![Deploy 🏗️](https://github.com/gibahjoe/keycloak_flutter/actions/workflows/deploy.yml/badge.svg)](https://github.com/gibahjoe/keycloak_flutter/actions/workflows/deploy.yml)
 
 > Easy Keycloak setup for Flutter applications.
 
@@ -94,12 +95,12 @@ A sample keycloak client is also included in the example codebase
 ```dart
 late KeycloakService keycloakService;
 
-void main() {
+void main() async {
   keycloakService = KeycloakService(KeycloakConfig(
-          url: 'http://localhost:8080', // Keycloak auth base url
-          realm: 'sample',
+          url: 'https://kc.devappliance.com', // Keycloak auth base url
+          realm: 'keycloak_flutter',
           clientId: 'sample-flutter'));
-  keycloakService.init(
+  await keycloakService.init(
     initOptions: KeycloakInitOptions(
       onLoad: 'check-sso',
       silentCheckSsoRedirectUri:
@@ -126,7 +127,6 @@ class MyApp extends StatelessWidget {
 
 class MyHomePage extends StatefulWidget {
   MyHomePage({Key? key, this.title}) : super(key: key);
-
   final String? title;
 
   @override
@@ -144,22 +144,28 @@ class _MyHomePageState extends State<MyHomePage> {
 
   @override
   void initState() {
+    // TODO: implement initState
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((timeStamp) async {
-      keycloakService.keycloakEventsStream.listen((event) async {
-        print(event);
-        if (event.type == KeycloakEventType.onAuthSuccess) {
-          _keycloakProfile = await keycloakService.loadUserProfile();
-        } else {
-          _keycloakProfile = null;
+    print('Registering postframe callback');
+    try {
+      WidgetsBinding.instance.addPostFrameCallback((timeStamp) async {
+        keycloakService.keycloakEventsStream.listen((event) async {
+          print(event);
+          if (event.type == KeycloakEventType.onAuthSuccess) {
+            _keycloakProfile = await keycloakService.loadUserProfile();
+          } else {
+            _keycloakProfile = null;
+          }
+          setState(() {});
+        });
+        if (keycloakService.authenticated) {
+          _keycloakProfile = await keycloakService.loadUserProfile(false);
         }
         setState(() {});
       });
-      // if(keycloakService.authenticated){
-      //   _keycloakProfile = await keycloakService.loadUserProfile(false);
-      // }
-      setState(() {});
-    });
+    } catch (e) {
+      print(e);
+    }
   }
 
   @override
@@ -194,24 +200,41 @@ class _MyHomePageState extends State<MyHomePage> {
                       .textTheme
                       .headline4,
             ),
-            ElevatedButton(
-              onPressed: () async {
-                print('refreshing token');
-                await keycloakService.updateToken(1000).then((value) {
-                  print(value);
-                })
-                        .catchError((onError) {
-                  print(onError);
-                });
-              },
-              child: Text(
-                'Refresh token',
-                style: Theme
-                        .of(context)
-                        .textTheme
-                        .headline4,
-              ),
+            SizedBox(
+              height: 20,
             ),
+            if (_keycloakProfile?.username == null)
+              ElevatedButton(
+                onPressed: _login,
+                child: Text(
+                  'Login',
+                  style: Theme
+                          .of(context)
+                          .textTheme
+                          .headline4,
+                ),
+              ),
+            SizedBox(
+              height: 20,
+            ),
+            if (_keycloakProfile?.username != null)
+              ElevatedButton(
+                onPressed: () async {
+                  print('refreshing token');
+                  await keycloakService.updateToken(1000).then((value) {
+                    print(value);
+                  }).catchError((onError) {
+                    print(onError);
+                  });
+                },
+                child: Text(
+                  'Refresh token',
+                  style: Theme
+                          .of(context)
+                          .textTheme
+                          .headline4,
+                ),
+              ),
           ],
         ),
       ),
@@ -219,7 +242,7 @@ class _MyHomePageState extends State<MyHomePage> {
         onPressed: _login,
         tooltip: 'Login',
         child: Icon(Icons.login),
-      ),
+      ), // This trailing comma makes auto-formatting nicer for build methods.
     );
   }
 }
