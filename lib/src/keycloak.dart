@@ -700,7 +700,3 @@ abstract class Keycloak {
   /// @private Undocumented.
   external KeycloakPromise<dynamic /*{}*/, void> loadUserInfo();
 }
-
-/* WARNING: export assignment not yet supported. */
-
-/// The 'Keycloak' namespace is deprecated, use named imports instead.
