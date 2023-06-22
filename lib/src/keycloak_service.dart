@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:js/js.dart';
 import 'package:js/js_util.dart';
 import 'package:keycloak_flutter/src/keycloak.dart';
 
@@ -26,7 +25,10 @@ class KeycloakService {
     _loadUserProfileAtStartUp = loadUserProfileAtStartUp;
     _bindEvents();
     bool authed = false;
-    authed = await promiseToFuture<bool>(_keycloak.init(initOptions));
+    authed = await promiseToFuture<bool>(_keycloak.init(initOptions))
+        .catchError((e) {
+      return false;
+    });
     if (authed && this._loadUserProfileAtStartUp) {
       await this.loadUserProfile();
     }

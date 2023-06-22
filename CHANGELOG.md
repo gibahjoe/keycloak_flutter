@@ -1,3 +1,7 @@
+## [0.0.21]
+
+- Added support for keycloak 20+
+
 ## [0.0.20] - 14/03/2020
 
 - Added support for keycloak 20.0.3

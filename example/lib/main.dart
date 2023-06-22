@@ -1,6 +1,7 @@
 import 'dart:html';
 
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:keycloak_flutter/keycloak_flutter.dart';
 
 late KeycloakService keycloakService;
@@ -10,9 +11,10 @@ void main() async {
       url: 'https://kc.devappliance.com', // Keycloak auth base url
       realm: 'keycloak_flutter',
       clientId: 'sample-flutter'));
-  await keycloakService.init(
+  keycloakService.init(
     initOptions: KeycloakInitOptions(
       onLoad: 'check-sso',
+      responseMode: 'query',
       silentCheckSsoRedirectUri:
           '${window.location.origin}/silent-check-sso.html',
     ),
@@ -24,13 +26,13 @@ class MyApp extends StatelessWidget {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
+    return MaterialApp.router(
       title: 'Keycloak Demo',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      home: MyHomePage(title: 'Flutter Keycloak demo'),
+      routerConfig: _router,
     );
   }
 }
@@ -56,7 +58,6 @@ class _MyHomePageState extends State<MyHomePage> {
   void initState() {
     // TODO: implement initState
     super.initState();
-    print('Registering postframe callback');
     try {
       WidgetsBinding.instance.addPostFrameCallback((timeStamp) async {
         keycloakService.keycloakEventsStream.listen((event) async {
@@ -90,7 +91,7 @@ class _MyHomePageState extends State<MyHomePage> {
       appBar: AppBar(
         // Here we take the value from the MyHomePage object that was created by
         // the App.build method, and use it to set our appbar title.
-        title: Text(widget.title!),
+        title: Text('Sample'),
         actions: [
           IconButton(
               icon: Icon(Icons.logout),
@@ -103,6 +104,17 @@ class _MyHomePageState extends State<MyHomePage> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
+            Container(
+              decoration: BoxDecoration(border: Border.all(color: Colors.red)),
+              padding: EdgeInsets.symmetric(vertical: 5, horizontal: 10),
+              child: Text(
+                'Ensure you use the sample client included in this example app.',
+                style: TextStyle(color: Colors.red),
+              ),
+            ),
+            SizedBox(
+              height: 30,
+            ),
             Text(
               'Welcome ${_keycloakProfile?.username ?? 'Guest'}',
               style: Theme.of(context).textTheme.headline4,
@@ -147,3 +159,12 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 }
+
+final _router = GoRouter(
+  routes: [
+    GoRoute(
+      path: '/',
+      builder: (context, state) => MyHomePage(),
+    ),
+  ],
+);

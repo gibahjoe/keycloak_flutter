@@ -7,7 +7,9 @@
 
 ## About
 
-This library helps you to use [keycloak-js](https://www.keycloak.org/docs/latest/securing_apps/index.html#_javascript_adapter) in Flutter applications providing the following features:
+This library helps you to
+use [keycloak-js](https://www.keycloak.org/docs/latest/securing_apps/index.html#_javascript_adapter) in Flutter
+applications providing the following features:
 
 - A **Keycloak Service** which wraps the `keycloak-js` methods to be used in Flutter, giving extra
   functionalities to the original functions and adding new methods to make it easier to be consumed by
@@ -29,6 +31,7 @@ not set in stone
 |--------------------------|------------------|
 | v0.0.3                   | v10 - v13        |
 | v0.0.19                  | v17 - v19        |
+| v0.0.20 - latest         | v20 - latest     |
 
 ## Installation
 
@@ -58,21 +61,30 @@ find `v10.0.2` in the example project. Your head tag should look as below.
 </head>
 <body>
 <script>
-    if ('serviceWorker' in navigator) {
-        window.addEventListener('flutter-first-frame', function () {
-            navigator.serviceWorker.register('flutter_service_worker.js');
-        });
-    }
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('flutter-first-frame', function () {
+      navigator.serviceWorker.register('flutter_service_worker.js');
+    });
+  }
 </script>
 <script src="main.dart.js" type="application/javascript"></script>
 </body>
 </html>
 ```
+
+Now, create a frontend client as you usually would in keycloak. Ensure you set your web origins configuration properly.
+
+If you are still having issues, you can import the [client](example/sample-flutter-keycloak-client.json) included in the
+example application
+
 #### Choosing the right keycloak-js version
 
 The Keycloak client documentation recommends to use the same version of your Keycloak installation.
 
-> A best practice is to load the JavaScript adapter directly from Keycloak Server as it will automatically be updated when you upgrade the server. If you copy the adapter to your web application instead, make sure you upgrade the adapter only after you have upgraded the server.
+> A best practice is to load the JavaScript adapter directly from Keycloak Server as it will automatically be updated
+> when you upgrade the server. If you copy the adapter to your web application instead, make sure you upgrade the
+> adapter
+> only after you have upgraded the server.
 
 You can now use keycloak in your app.
 
@@ -97,12 +109,13 @@ late KeycloakService keycloakService;
 
 void main() async {
   keycloakService = KeycloakService(KeycloakConfig(
-          url: 'https://kc.devappliance.com', // Keycloak auth base url
-          realm: 'keycloak_flutter',
+          url: 'http://localhost:8080', // Keycloak auth base url
+          realm: 'sample',
           clientId: 'sample-flutter'));
-  await keycloakService.init(
+  keycloakService.init(
     initOptions: KeycloakInitOptions(
       onLoad: 'check-sso',
+      responseMode: 'query',
       silentCheckSsoRedirectUri:
       '${window.location.origin}/silent-check-sso.html',
     ),
@@ -114,13 +127,13 @@ class MyApp extends StatelessWidget {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
+    return MaterialApp.router(
       title: 'Keycloak Demo',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      home: MyHomePage(title: 'Flutter Keycloak demo'),
+      routerConfig: _router,
     );
   }
 }
@@ -146,7 +159,6 @@ class _MyHomePageState extends State<MyHomePage> {
   void initState() {
     // TODO: implement initState
     super.initState();
-    print('Registering postframe callback');
     try {
       WidgetsBinding.instance.addPostFrameCallback((timeStamp) async {
         keycloakService.keycloakEventsStream.listen((event) async {
@@ -180,7 +192,7 @@ class _MyHomePageState extends State<MyHomePage> {
       appBar: AppBar(
         // Here we take the value from the MyHomePage object that was created by
         // the App.build method, and use it to set our appbar title.
-        title: Text(widget.title!),
+        title: Text('Sample'),
         actions: [
           IconButton(
                   icon: Icon(Icons.logout),
@@ -246,13 +258,27 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 }
+
+final _router = GoRouter(
+  routes: [
+    GoRoute(
+      path: '/',
+      builder: (context, state) => MyHomePage(),
+    ),
+  ],
+);
 ```
 
-In the example we have set up Keycloak to use a silent `check-sso`. With this feature enabled, your browser will not do a full redirect to the Keycloak server and back to your application, instead this action will be performed in a hidden iframe, so your application resources only need to be loaded and parsed once by the browser when the app is initialized and not again after the redirect back from Keycloak to your app.
+In the example we have set up Keycloak to use a silent `check-sso`. With this feature enabled, your browser will not do
+a full redirect to the Keycloak server and back to your application, instead this action will be performed in a hidden
+iframe, so your application resources only need to be loaded and parsed once by the browser when the app is initialized
+and not again after the redirect back from Keycloak to your app.
 
-To ensure that Keycloak can communicate through the iframe you will have to serve a static HTML asset from your application at the location provided in `silentCheckSsoRedirectUri`.
+To ensure that Keycloak can communicate through the iframe you will have to serve a static HTML asset from your
+application at the location provided in `silentCheckSsoRedirectUri`.
 
-Create a file called `silent-check-sso.html` in the `assets` directory of your application and paste in the contents as seen below.
+Create a file called `silent-check-sso.html` in the `assets` directory of your application and paste in the contents as
+seen below.
 
 ```html
 
@@ -270,8 +296,27 @@ Create a file called `silent-check-sso.html` in the `assets` directory of your a
 If you want to know more about these options and various other capabilities of the Keycloak client is recommended to
 read the [JavaScript Adapter documentation](https://www.keycloak.org/docs/latest/securing_apps/#_javascript_adapter).
 
+## FAQ
+
+Q: Why am I getting 'Promise was rejected with a value of `undefined`'?
+
+A: Ensure you have setup your frontend client properly, specifically the _web origins_ configuration. This issue usually
+occurs when the login status iframe cannot check for the login status of the user because of wrong web origins config.
+Please check the included [client](example/sample-flutter-keycloak-client.json) in the example app.
+
+Q: Do I have to use [go_router](https://pub.dev/packages/go_router) like the example app??
+
+A: No. You absolutely do not. However, you need to use a router that supports and recognises url query parameters or url
+fragments because this is how keycloak communicates the login state of your application. Below are some that will work.
+
+* [go_router](https://pub.dev/packages/go_router)
+* [flutter_modular](https://pub.dev/packages/flutter_modular)
+
 ## Features and bugs
 
 Please file feature requests and bugs at the [issue tracker][tracker].
 
 [tracker]: https://github.com/gibahjoe/keycloak_flutter/issues
+
+
+<a href="https://www.buymeacoffee.com/gibahjoe" target="_blank"><img src="https://bmc-cdn.nyc3.digitaloceanspaces.com/BMC-button-images/custom_images/orange_img.png" alt="Buy Me A Coffee" style="height: auto !important;width: auto !important;" ></a>
