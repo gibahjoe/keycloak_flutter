@@ -8,8 +8,8 @@ late KeycloakService keycloakService;
 
 void main() async {
   keycloakService = KeycloakService(KeycloakConfig(
-      url: 'https://kc.devappliance.com', // Keycloak auth base url
-      realm: 'keycloak_flutter',
+      url: 'http://localhost:8080', // Keycloak auth base url
+      realm: 'sample',
       clientId: 'sample-flutter'));
   keycloakService.init(
     initOptions: KeycloakInitOptions(
