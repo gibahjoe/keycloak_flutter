@@ -79,6 +79,11 @@ class KeycloakService {
     return this._keycloak.token;
   }
 
+  Future<String> getIdToken([bool forceLogin = false]) async {
+    await this.updateToken(10);
+    return this._keycloak.idToken;
+  }
+
   Future<void> logout([KeycloakLogoutOptions? options]) async {
     this._keycloak.logout(options);
     this._userProfile = null;
